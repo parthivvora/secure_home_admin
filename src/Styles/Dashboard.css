@@ -1,0 +1,160 @@
+.dashboard-content,
+.security-content,
+.society-user-content {
+    width: calc(100% - 300px);
+    margin-left: 300px;
+}
+
+.content-container {
+    padding: 25px 35px;
+}
+
+.dashboard-content .content-container h1,
+.security-part .header-part h1,
+.society-user-part .header-part h1 {
+    color: var(--title-text-color);
+    font-size: 30px;
+}
+
+.card-box {
+    box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.10);
+    border-radius: var(--border-radius);
+    padding: 35px;
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    transition: 0.4s ease-in;
+    cursor: pointer;
+}
+
+.card-box:hover {
+    background-color: var(--title-text-color);
+    color: white;
+}
+
+.icon-box {
+    background-color: #ADB9CE;
+    width: 60px;
+    height: 60px;
+    border-radius: var(--border-radius);
+    position: relative;
+}
+
+.icon-box img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/*------------------------------------- security-part -------------------------------------*/
+.security-part .header-part {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.security-part .header-part button {
+    background-color: var(--title-text-color);
+    border-radius: var(--border-radius);
+    border: none;
+    padding: 10px 30px;
+    color: white;
+    font-weight: 500;
+    font-size: 20px;
+    text-transform: uppercase;
+}
+
+.security-part .security-content table,
+.society-user-part .society-user-content table {
+    border: 1px solid #dee2e6;
+}
+
+.security-part .security-content table th,
+.society-user-part .society-user-content table th {
+    padding: 15px 30px;
+    font-size: 16px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.security-part .security-content table td,
+.society-user-part .society-user-content table td {
+    padding: 10px 30px;
+    font-size: 14px;
+    color: #696969;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.security-part .security-content table td i {
+    color: var(--title-text-color);
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.no-found {
+    /* color: var(--title-text-color); */
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* Loader */
+.page-loader {
+    width: 100%;
+    height: 100vh;
+    position: absolute;
+    background: #272727;
+    z-index: 1000;
+
+}
+
+.txt {
+    color: #666;
+    text-align: center;
+    top: 40%;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 0.3rem;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+/* SPINNER ANIMATION */
+.spinner {
+    position: relative;
+    top: 35%;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background-color: #fff;
+
+    border-radius: 100%;
+    -webkit-animation: sk-scaleout 1.0s infinite ease-in-out;
+    animation: sk-scaleout 1.0s infinite ease-in-out;
+}
+
+@-webkit-keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0)
+    }
+
+    100% {
+        -webkit-transform: scale(1.0);
+        opacity: 0;
+    }
+}
+
+@keyframes sk-scaleout {
+    0% {
+        -webkit-transform: scale(0);
+        transform: scale(0);
+    }
+
+    100% {
+        -webkit-transform: scale(1.0);
+        transform: scale(1.0);
+        opacity: 0;
+    }
+}
