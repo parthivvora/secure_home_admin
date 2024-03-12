@@ -9,6 +9,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import firebase from '../Global/firebase'
 import 'firebase/database';
+import "firebase/storage";
 
 function Security() {
     const [staffData, setStaffData] = useState([]);
@@ -17,7 +18,9 @@ function Security() {
     const [staffId, setStaffId] = useState("");
     const [status, setStatus] = useState("");
     const [loading, setLoading] = useState(false);
-    const modalRef = useRef(null);
+    const addModelRef = useRef(null);
+    const editModelRef = useRef(null);
+    const [file, setFile] = useState("");
 
     // Get all user information
     async function getAllSocietyInformation() {
@@ -26,6 +29,10 @@ function Security() {
         if (fetchData) {
             setLoading(true)
             setStaffData(Object.values(fetchData))
+        }
+        else {
+            setLoading(true)
+            console.log("No found");
         }
     }
 
@@ -48,6 +55,18 @@ function Security() {
     const postSecurityInfo = async (e) => {
         e.preventDefault()
 
+        let tempImageUri = ""
+        async function getImageUrl() {
+            await (await firebase.app.storage().ref(`/staff/${file.name}`).put(file)).ref.getDownloadURL()
+                .then((response) => {
+                    tempImageUri = response
+                })
+                .catch((error) => {
+                    console.log("🚀 ~ postSecurityInfo ~ error:", error)
+                })
+            return tempImageUri
+        }
+
         const newRef = firebase.app.database().ref("staff").push()
         if (!staffId) {
             const uniqueId = newRef.key;
@@ -58,22 +77,23 @@ function Security() {
                 gender: updatestaffData.gender,
                 joinDate: updatestaffData.joinDate,
                 isDeleted: false,
+                image: await getImageUrl(),
                 id: uniqueId
             }
 
             await newRef.set(newObj)
-                .then((response) => {
+                .then(() => {
                     toast.success("Staff information add successfully", {
                         position: toast.POSITION.TOP_RIGHT,
                         autoClose: 2000,
                         pauseOnHover: false
                     });
-                    modalRef.current.click()
+                    addModelRef.current.click()
                     getAllSocietyInformation()
                 })
                 .catch((error) => {
                     console.log("🚀 ~ postSecurityInfo ~ error:", error)
-                    toast.error("Error occur", {
+                    toast.error(error.message, {
                         position: toast.POSITION.TOP_RIGHT,
                         autoClose: 2000,
                         pauseOnHover: false
@@ -86,22 +106,23 @@ function Security() {
                 contact: updatestaffData.contact,
                 gender: updatestaffData.gender,
                 joinDate: updatestaffData.joinDate,
+                image: updatestaffData.image,
                 isDeleted: status == "true" ? true : false,
             }
 
             await firebase.app.database().ref(`staff/${staffId}`).update(newObj)
-                .then((response) => {
+                .then(() => {
                     toast.success("Staff information edit successfully", {
                         position: toast.POSITION.TOP_RIGHT,
                         autoClose: 2000,
                         pauseOnHover: false
                     });
-                    modalRef.current.click()
+                    editModelRef.current.click()
                     getAllSocietyInformation()
                 })
                 .catch((error) => {
                     console.log("🚀 ~ postSecurityInfo ~ error:", error)
-                    toast.error("Error occur", {
+                    toast.error(error.message, {
                         position: toast.POSITION.TOP_RIGHT,
                         autoClose: 2000,
                         pauseOnHover: false
@@ -134,34 +155,47 @@ function Security() {
                                 <button data-bs-toggle="modal" data-bs-target="#exampleModal">+ Add New</button>
                             </div>
                             <div className="table-responsive">
-                                <table className="table table-striped table-bordered mt-5 ">
-                                    <thead>
-                                        <tr>
-                                            <th>Id</th>
-                                            <th>Staff Name</th>
-                                            <th>Staff Contact</th>
-                                            <th>Gender</th>
-                                            <th>Join Date</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            data.map((item, index) => (
-                                                <tr key={index}>
-                                                    <td> {item.id} </td>
-                                                    <td> {item.name} </td>
-                                                    <td> {item.contact} </td>
-                                                    <td> {item.gender} </td>
-                                                    <td> {item.joinDate} </td>
-                                                    <td> {item.isDeleted.toString() == "true" ? <span className="badge bg-success">Inactive</span> : <span className="badge bg-warning text-dark">Active</span>} </td>
-                                                    <td> <FaEdit style={{ cursor: "pointer", fontSize: "18px" }} onClick={() => editData(item)} data-bs-toggle="modal" data-bs-target="#exampleModal1" /> </td>
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
+                                {
+                                    data.length > 0 ? (
+                                        <>
+                                            <table className="table table-striped table-bordered mt-5 ">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Id</th>
+                                                        <th>Image</th>
+                                                        <th>Staff Name</th>
+                                                        <th>Staff Contact</th>
+                                                        <th>Gender</th>
+                                                        <th>Join Date</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        data.map((item, index) => (
+                                                            <tr key={index}>
+                                                                <td> {item.id} </td>
+                                                                <td> <img src={item.image} alt={item.image} className='img-fluid' /> </td>
+                                                                <td> {item.name} </td>
+                                                                <td> {item.contact} </td>
+                                                                <td> {item.gender} </td>
+                                                                <td> {item.joinDate} </td>
+                                                                <td> {item?.isDeleted?.toString() == "true" ? <span className="badge bg-success">Inactive</span> : <span className="badge bg-warning text-dark">Active</span>} </td>
+                                                                <td> <FaEdit style={{ cursor: "pointer", fontSize: "18px" }} onClick={() => editData(item)} data-bs-toggle="modal" data-bs-target="#exampleModal1" /> </td>
+                                                            </tr>
+                                                        ))
+                                                    }
+                                                </tbody>
+                                            </table>
+                                            <Stack spacing={2} className='mt-5'>
+                                                <Pagination count={totalPages} size="large" onChange={changePageIndex} />
+                                            </Stack>
+                                        </>
+                                    ) : (
+                                        <h3 className='mt-5 text-center'>No data found</h3>
+                                    )
+                                }
                             </div>
 
                             {/* Add Model */}
@@ -170,7 +204,7 @@ function Security() {
                                     <div className="modal-content">
                                         <div className="modal-header">
                                             <h5 className="modal-title" id="exampleModalLabel">Add New Staff</h5>
-                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ref={modalRef}></button>
+                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ref={addModelRef}></button>
                                         </div>
                                         <div className="modal-body">
                                             <form method='post' onSubmit={postSecurityInfo}>
@@ -199,6 +233,10 @@ function Security() {
                                                     <label htmlFor="societyName" className="col-form-label">Staff Join Date :</label>
                                                     <input className="form-control w-50" type="date" name="joinDate" id="flexRadioDefault1" onChange={getUpdateSocietyInfo} />
                                                 </div>
+                                                <div className="mb-3">
+                                                    <label htmlFor="societyName" className="col-form-label">Image :</label>
+                                                    <input className="form-control w-100" type="file" name="image" id="flexRadioDefault1" onChange={(e) => setFile(e.target.files[0])} />
+                                                </div>
                                                 <div className="modal-footer" style={{ border: "none" }}>
                                                     <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                                     <button type="submit" className="btn btn-primary">Add Staff</button>
@@ -215,7 +253,7 @@ function Security() {
                                     <div className="modal-content">
                                         <div className="modal-header">
                                             <h5 className="modal-title" id="exampleModalLabel">Edit Staff Details</h5>
-                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ref={modalRef}></button>
+                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" ref={editModelRef}></button>
                                         </div>
                                         <div className="modal-body">
                                             <form method='post' onSubmit={postSecurityInfo}>
@@ -261,9 +299,6 @@ function Security() {
                                     </div>
                                 </div>
                             </div>
-                            <Stack spacing={2} className='mt-5'>
-                                <Pagination count={totalPages} size="large" onChange={changePageIndex} />
-                            </Stack>
                         </div>
                     </div>
                 </div>
